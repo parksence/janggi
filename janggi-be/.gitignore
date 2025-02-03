@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Git ###
+application.properties
+application.yml
