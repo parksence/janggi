@@ -1,13 +1,13 @@
 package hjpark.janggibe.config;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 
 @Component
@@ -16,10 +16,10 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private static final long EXPIRATION_TIME = 86400000L; // 1일
+    private static final long EXPIRATION_TIME = Duration.ofDays(1).toMillis(); // 1일
 
     // 서명 키 가져오기
-    private SecretKey getSigningKey() {
+    private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -30,17 +30,17 @@ public class JwtUtil {
                 .setSubject(username) // 사용자 ID 설정
                 .setIssuedAt(new Date()) // 토큰 발급 시간
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 토큰 만료 시간
-                .signWith(getSigningKey()) // HMAC SHA256 서명
-                .compact();
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact(); // JWT 토큰 생성
     }
 
     // JWT에서 사용자 이름 추출
     public String getUsername(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+        return Jwts.parser() // 최신 방식 적용
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload()
+                .parseClaimsJws(token)
+                .getBody()
                 .getSubject();
     }
 
@@ -48,13 +48,12 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .verifyWith(getSigningKey())
+                    .setSigningKey(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
+                    .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
-
 }
