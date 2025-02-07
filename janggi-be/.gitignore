@@ -32,6 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### Git ###
+### mvn ###
 application.properties
 application.yml

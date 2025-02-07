@@ -10,3 +10,28 @@ Content-Type: application/json
     "username": "test",
     "password": "1234"
 }
+
+### 회원가입
+POST https://jang-gi.com/auth/register
+Content-Type: application/json
+
+{
+  "username": "testUser",
+  "password": "test1234"
+}
+
+### 일반 로그인 (JWT 발급)
+POST https://jang-gi.com/auth/login
+Content-Type: application/json
+
+{
+  "username": "testUser",
+  "password": "test1234"
+}
+
+### 구글 로그인 후 JWT 발급
+GET https://jang-gi.com/auth/oauth/google
+
+### JWT 토큰을 이용해 API 요청하기
+GET https://jang-gi.com/auth/me
+Authorization: Bearer <JWT_TOKEN>
