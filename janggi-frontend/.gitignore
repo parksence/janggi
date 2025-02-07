@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Node.js 관련 파일 제외
+node_modules/*
+package-lock.json
+package.json
