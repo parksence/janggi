@@ -1,26 +1,43 @@
 package hjpark.janggibe.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-@Data
-@NoArgsConstructor
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "user_m")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String username;
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    private String password;
 
     @Column(nullable = false)
-    private String password;
-    
-    private String status;
-    private String createdAt;
-    private String updatedAt;
-    private String deletedAt;
+    private String nickname;  // 최초 로그인 시 설정
+
+    private String profileImage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Provider provider;
+
+    private String providerId;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

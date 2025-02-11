@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         hjpark.janggibe.model.User user = userOptional.get();
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
+                .username(user.getProviderId())
                 .password(user.getPassword()) // Spring Security에서 비밀번호 검증을 위해 사용
                 .authorities("ROLE_USER") // 기본적으로 USER 권한 부여
                 .build();
