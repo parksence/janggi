@@ -1,7 +1,9 @@
 <template>
   <div class="home">
     <header class="header">
-      <div class="logo">Janggi</div>
+      <div class="logo">
+        <img src="/favicon2.png" alt="logo" width="50px" height="50px" />
+      </div>
       <nav class="nav">
         <button @click="logout" class="nav-button">Sign out</button>
       </nav>
