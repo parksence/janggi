@@ -1,6 +1,8 @@
 package hjpark.janggibe.service;
 
+import hjpark.janggibe.model.User;
 import hjpark.janggibe.repository.UserRepository;
+import hjpark.janggibe.security.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,7 +12,6 @@ import java.util.Optional;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-
     private final UserRepository userRepository;
 
     public CustomUserDetailsService(UserRepository userRepository) {
@@ -18,19 +19,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<hjpark.janggibe.model.User> userOptional = userRepository.findByUsername(username);
-
-        if (userOptional.isEmpty()) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-
-        hjpark.janggibe.model.User user = userOptional.get();
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getProviderId())
-                .password(user.getPassword()) // Spring Security에서 비밀번호 검증을 위해 사용
-                .authorities("ROLE_USER") // 기본적으로 USER 권한 부여
-                .build();
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(CustomUserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("email not found: " + email));
     }
 
 }

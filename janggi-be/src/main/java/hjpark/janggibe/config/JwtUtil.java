@@ -26,13 +26,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // JWT 토큰 생성
-    public String generateToken(String email, String picture, String sub) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", sub);         // 구글에서 제공하는 고유 사용자 ID
-        claims.put("email", email);     // 사용자 이메일
-        claims.put("picture", picture); // 사용자 프로필 사진 URL
-
+    /**
+     * 여러 정보를 담은 JWT 토큰 생성
+     * @param claims 사용자 정보 (email, nickname, picture 등)
+     * @return JWT 토큰
+     */
+    public String generateToken(Map<String, Object> claims) {
         return Jwts.builder()
                 .setClaims(claims) // 사용자 ID 설정
                 .setIssuedAt(new Date()) // 토큰 발급 시간
@@ -41,7 +40,11 @@ public class JwtUtil {
                 .compact(); // JWT 토큰 생성
     }
 
-    // JWT에서 사용자 이름 추출
+    /**
+     * JWT 토큰에서 정보 추출
+     * @param token JWT 토큰
+     * @return Claims (토큰 내 정보)
+     */
     public String getUsername(String token) {
         return Jwts.parser() // 최신 방식 적용
                 .setSigningKey(getSigningKey())

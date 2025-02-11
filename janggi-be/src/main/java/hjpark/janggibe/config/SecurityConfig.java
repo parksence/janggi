@@ -1,5 +1,8 @@
 package hjpark.janggibe.config;
 
+import hjpark.janggibe.model.Provider;
+import hjpark.janggibe.model.User;
+import hjpark.janggibe.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,8 +19,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class SecurityConfig {
@@ -26,12 +33,15 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
     private final DefaultOAuth2UserService oAuth2UserService;
+    private final UserRepository userRepository;
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
-    public SecurityConfig(JwtUtil jwtUtil, UserDetailsService userDetailsService, JwtFilter jwtFilter, DefaultOAuth2UserService oAuth2UserService) {
+    public SecurityConfig(JwtUtil jwtUtil, UserDetailsService userDetailsService, JwtFilter jwtFilter, DefaultOAuth2UserService oAuth2UserService, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
         this.oAuth2UserService = oAuth2UserService;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -64,13 +74,41 @@ public class SecurityConfig {
                         )
                         .successHandler((request, response, authentication) -> {
                             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-                            // 토큰에 담을 정보
+                            
+                            // OAuth2에서 받아온 사용자 정보 로깅
+                            log.info("OAuth2 User Attributes: {}", oAuth2User.getAttributes());
+                            
                             String email = oAuth2User.getAttribute("email");
                             String picture = oAuth2User.getAttribute("picture");
-                            String sub = oAuth2User.getAttribute("sub"); // 특정 ID 식별
-
-                            String token = jwtUtil.generateToken(email, picture, sub);
+                            String name = oAuth2User.getAttribute("name");
+                            String sub = oAuth2User.getAttribute("sub");
+                            
+                            log.info("Email: {}", email);
+                            log.info("Picture: {}", picture);
+                            log.info("Name: {}", name);
+                            log.info("Sub: {}", sub);
+                            
+                            // 사용자 정보 저장 또는 업데이트
+                            User user = userRepository.findByEmail(email)
+                                .orElse(User.builder()
+                                    .email(email)
+                                    .nickname(name)
+                                    .profileImage(picture)
+                                    .provider(Provider.GOOGLE)
+                                    .providerId(sub)
+                                    .build());
+                                
+                            userRepository.save(user);
+                            
+                            // JWT에 저장할 사용자 정보 생성
+                            Map<String, Object> claims = new HashMap<>();
+                            claims.put("email", email);
+                            claims.put("nickname", name);
+                            claims.put("picture", picture);
+                            claims.put("sub", sub);
+                            
+                            String token = jwtUtil.generateToken(claims);
+                            response.setCharacterEncoding("UTF-8");
                             response.sendRedirect("http://localhost:5173?token=" + token);
                         })
                 )

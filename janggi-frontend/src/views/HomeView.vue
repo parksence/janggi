@@ -2,77 +2,49 @@
   <div class="home">
     <header class="header">
       <div class="logo">
-        <img src="/favicon2.png" alt="logo" width="50px" height="50px" />
+        <img :src="user.profileImage" alt="User Profile" class="profile-img" />
+        {{ user.nickname }}
       </div>
       <nav class="nav">
         <button @click="logout" class="nav-button">Sign out</button>
       </nav>
     </header>
     <main class="main-content">
-      <h1>Welcome to Janggi</h1>
+      <h1>Welcome, {{ user.nickname }}!</h1>
     </main>
   </div>
 </template>
 
-<script setup lang="ts">
-import { useRouter } from 'vue-router';
+<script setup>
+import { ref, onMounted } from "vue";
+import { parseJwt } from "@/utils/auth";
 
-const router = useRouter();
+const user = ref({ nickname: "", profileImage: "" });
+
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const decoded = parseJwt(token);
+    if (decoded) {
+      user.value = {
+        nickname: decoded.nickname,
+        profileImage: decoded.profileImage || "/default-avatar.png",
+      };
+    }
+  }
+});
 
 const logout = () => {
-  localStorage.removeItem('token');
-  router.push('/login');
+  localStorage.removeItem("token");
+  window.location.href = "/login";
 };
 </script>
 
 <style scoped>
-.home {
-  min-height: 100vh;
-  background-color: #0a0a0a;
-  color: #ffffff;
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.nav-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background-color: transparent;
-  color: #fff;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.main-content {
-  padding-top: 5rem;
-  text-align: center;
-}
-
-h1 {
-  font-size: 2.5rem;
-  font-weight: 600;
-}
-</style> 
+</style>
