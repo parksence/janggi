@@ -1,50 +1,55 @@
 <template>
-  <div class="home">
-    <header class="header">
-      <div class="logo">
-        <img :src="user.profileImage" alt="User Profile" class="profile-img" />
-        {{ user.nickname }}
-      </div>
-      <nav class="nav">
-        <button @click="logout" class="nav-button">Sign out</button>
-      </nav>
-    </header>
-    <main class="main-content">
-      <h1>Welcome, {{ user.nickname }}!</h1>
-    </main>
+  <div class="home-container">
+    <h1>대기실</h1>
+    <div v-if="games.length > 0">
+      <ul>
+        <li v-for="game in games" :key="game.id">
+          {{ game.host }} 님이 대국을 기다리고 있습니다.
+        </li>
+      </ul>
+    </div>
+    <div v-else>
+      <p>대국 중인 사람이 없습니다.</p>
+    </div>
+
+    <button @click="showUserInfo = true">내 정보</button>
+    <button @click="requestGame">대국 신청</button>
+
+    <!-- 내 정보 팝업 -->
+    <UserInfoView v-if="showUserInfo" @close="showUserInfo = false" @openSettings="showSettings = true" />
+
+    <!-- 설정 팝업 (내 정보보다 위에 있음) -->
+    <SettingsView v-if="showSettings" @close="showSettings = false" />
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
-import { parseJwt } from "@/utils/auth";
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import UserInfoView from './UserInfoView.vue';
+import SettingsView from './SettingsView.vue';
 
-const user = ref({ nickname: "", profileImage: "" });
+const games = ref<{ id: number; host: string }[]>([]);
+const showUserInfo = ref(false);
+const showSettings = ref(false);
 
-onMounted(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    const decoded = parseJwt(token);
-    if (decoded) {
-      user.value = {
-        nickname: decoded.nickname,
-        profileImage: decoded.profileImage || "/default-avatar.png",
-      };
-    }
+const fetchGames = async () => {
+  try {
+    const response = await fetch('/api/games');
+    games.value = await response.json();
+  } catch (error) {
+    console.error("게임 목록을 불러오지 못했습니다.");
   }
-});
-
-const logout = () => {
-  localStorage.removeItem("token");
-  window.location.href = "/login";
 };
+
+const requestGame = () => {
+  console.log("대국 신청!");
+};
+
+onMounted(fetchGames);
 </script>
 
 <style scoped>
-.profile-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
+.home-container {
+  text-align: center;
 }
 </style>

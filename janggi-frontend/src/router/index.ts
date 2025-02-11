@@ -15,6 +15,18 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/info',
+            name: 'info',
+            component: () => import('../views/UserInfoView.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/setting',
+            name: 'setting',
+            component: () => import('../views/SettingsView.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/'
         }
@@ -23,7 +35,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
-    
+
     if (to.meta.requiresAuth && !token) {
         next('/login');
     } else if (to.path === '/login' && token) {
