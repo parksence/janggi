@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -25,9 +27,14 @@ public class JwtUtil {
     }
 
     // JWT 토큰 생성
-    public String generateToken(String username) {
+    public String generateToken(String email, String picture, String sub) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", sub);         // 구글에서 제공하는 고유 사용자 ID
+        claims.put("email", email);     // 사용자 이메일
+        claims.put("picture", picture); // 사용자 프로필 사진 URL
+
         return Jwts.builder()
-                .setSubject(username) // 사용자 ID 설정
+                .setClaims(claims) // 사용자 ID 설정
                 .setIssuedAt(new Date()) // 토큰 발급 시간
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 토큰 만료 시간
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

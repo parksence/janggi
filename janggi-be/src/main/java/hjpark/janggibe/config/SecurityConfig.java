@@ -17,7 +17,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.security.Security;
 import java.util.Arrays;
 
 @Configuration
@@ -65,8 +64,13 @@ public class SecurityConfig {
                         )
                         .successHandler((request, response, authentication) -> {
                             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+
+                            // 토큰에 담을 정보
                             String email = oAuth2User.getAttribute("email");
-                            String token = jwtUtil.generateToken(email);
+                            String picture = oAuth2User.getAttribute("picture");
+                            String sub = oAuth2User.getAttribute("sub"); // 특정 ID 식별
+
+                            String token = jwtUtil.generateToken(email, picture, sub);
                             response.sendRedirect("http://localhost:5173?token=" + token);
                         })
                 )
