@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="logo-section">
-      <img src="@/assets/logo.svg" alt="Janggi" class="logo" />
+      <img src="/favicon2.png" alt="logo" width="100px" height="100px" />
     </div>
     
     <div class="auth-container">
@@ -42,7 +42,7 @@ const googleLogin = () => {
 }
 
 .logo-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   
   .logo {
     height: 48px;
