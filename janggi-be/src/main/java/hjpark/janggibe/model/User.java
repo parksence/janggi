@@ -35,6 +35,9 @@ public class User {
 
     private String providerId;
 
+    @Column(nullable = false)
+    private boolean isDarkMode = false; // 기본값 false 설정
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

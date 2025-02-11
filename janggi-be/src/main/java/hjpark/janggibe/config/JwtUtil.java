@@ -45,13 +45,13 @@ public class JwtUtil {
      * @param token JWT 토큰
      * @return Claims (토큰 내 정보)
      */
-    public String getUsername(String token) {
-        return Jwts.parser() // 최신 방식 적용
+    public String getEmailFromToken(String token) {
+        return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
+                .get("email", String.class);
     }
 
     // JWT 유효성 검사
@@ -65,5 +65,14 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String getUsername(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 }

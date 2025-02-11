@@ -2,8 +2,10 @@
   <div class="modal-overlay" @click.self="close">
     <div class="modal user-modal">
       <h2>내 정보</h2>
-      <p>닉네임: {{ user.nickname }}</p>
-      <p>전적: {{ user.wins }}승 {{ user.losses }}패</p>
+      <div class="user-info">
+        <p>닉네임: {{ user.nickname }}</p>
+        <p>전적: {{ user.wins }}승 {{ user.losses }}패</p>
+      </div>
 
       <div class="button-group">
         <button class="secondary-btn" @click="openSettings">설정</button>
@@ -63,6 +65,7 @@ onMounted(fetchUserInfo);
   width: 100%;
   text-align: center;
   animation: fadeIn 0.3s ease;
+  color: #333;
 }
 
 .button-group {
@@ -80,5 +83,25 @@ onMounted(fetchUserInfo);
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.user-info {
+  margin: 20px 0;
+}
+
+/* 다크모드 스타일 */
+:global(.dark-mode) .modal {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+:global(.dark-mode) .button-group button {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #444;
+}
+
+:global(.dark-mode) .button-group button:hover {
+  background-color: #444;
 }
 </style>

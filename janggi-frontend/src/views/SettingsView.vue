@@ -1,8 +1,8 @@
 <template>
   <div class="modal-overlay" @click.self="close">
     <div class="modal settings-modal">
-      <!-- 닫기 버튼 추가 -->
-      <button class="close-btn" @click="close">✖</button>
+      <!-- 닫기 버튼 -->
+      <button class="close-btn material-icons" @click="close">close</button>
       <h2>설정</h2>
 
       <div class="setting-item">
@@ -25,15 +25,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDarkModeStore } from '@/stores/darkModeStore';
 
 const emit = defineEmits(['close']);
 const router = useRouter();
-const darkMode = ref(false);
+const darkModeStore = useDarkModeStore();
+const darkMode = ref(darkModeStore.isDarkMode);
 
-const toggleDarkMode = () => {
-  document.body.classList.toggle('dark-mode', darkMode.value);
+onMounted(async () => {
+  await darkModeStore.fetchDarkModeStatus();
+  darkMode.value = darkModeStore.isDarkMode;
+});
+
+const toggleDarkMode = async () => {
+  await darkModeStore.toggleDarkMode();
+  darkMode.value = darkModeStore.isDarkMode;
 };
 
 const logout = () => {
@@ -55,21 +63,21 @@ const close = () => {
 </script>
 
 <style scoped>
-/* 폰트 적용 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-* {
+body {
   font-family: 'Inter', sans-serif;
 }
 
-/* 팝업 배경 스타일 */
+/* 팝업 배경 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -81,8 +89,8 @@ const close = () => {
   background: white;
   padding: 24px;
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  width: 340px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 360px;
   text-align: center;
   position: relative;
   animation: fadeIn 0.3s ease-in-out;
@@ -95,28 +103,33 @@ const close = () => {
   right: 12px;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 24px;
   cursor: pointer;
-  color: #888;
+  color: #666;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .close-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
   color: #333;
 }
 
-/* 다크 모드 스타일 */
-.dark-mode .modal {
-  background: #181818;
-  color: #f5f5f5;
-  border: 1px solid #444;
+/* 다크모드에서의 닫기 버튼 스타일 */
+:global(.dark-mode) .close-btn {
+  color: #999;
 }
 
-.dark-mode h2 {
-  font-weight: 600;
-  color: #f5f5f5;
+:global(.dark-mode) .close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-/* 제목 스타일 */
+/* 제목 */
 h2 {
   margin-bottom: 12px;
   font-size: 20px;
@@ -128,7 +141,8 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 14px 18px;
+  font-size: 16px;
 }
 
 /* 가로선 */
@@ -187,7 +201,7 @@ hr {
   background: #cc0000;
 }
 
-/* 토글 스위치 스타일 */
+/* 토글 스위치 */
 .toggle {
   position: relative;
   width: 48px;
@@ -236,7 +250,18 @@ input:checked + .slider::before {
   transform: translateX(24px);
 }
 
-/* 다크 모드에서 토글 색상 변경 */
+/* 다크 모드 */
+.dark-mode .modal {
+  background: #181818;
+  color: #f5f5f5;
+  border: 1px solid #444;
+}
+
+.dark-mode h2 {
+  font-weight: 600;
+  color: #f5f5f5;
+}
+
 .dark-mode .slider {
   background-color: #444;
 }

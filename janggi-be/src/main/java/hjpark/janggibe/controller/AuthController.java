@@ -11,15 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Base64;
+import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 
 @RestController
 @RequestMapping("/auth")
@@ -48,6 +44,22 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(Map.of("username", userDetails.getUsername()));
+    }
+
+    @GetMapping("/dark")
+    public ResponseEntity<?> getDarkMode(Principal principal) {
+        User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok().body(Map.of("isDarkMode", user.isDarkMode()));
+    }
+
+    @PutMapping("/dark")
+    public ResponseEntity<?> updateDarkMode(@RequestParam boolean darkMode, Principal principal) {
+        User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setDarkMode(darkMode);
+        userRepository.save(user);
+        return ResponseEntity.ok().body(Map.of("isDarkMode", user.isDarkMode()));
     }
 
 }

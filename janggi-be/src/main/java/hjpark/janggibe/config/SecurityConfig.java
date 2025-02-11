@@ -21,12 +21,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
@@ -55,13 +58,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/auth/**", "/oauth2/**", "/login/**").permitAll()
+                        .requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/auth/dark").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -88,6 +92,9 @@ public class SecurityConfig {
                             log.info("Name: {}", name);
                             log.info("Sub: {}", sub);
                             
+                            // 이메일 주소에서 특수문자가 변경되지 않도록 처리
+                            email = email.trim();  // 앞뒤 공백 제거
+                            
                             // 사용자 정보 저장 또는 업데이트
                             User user = userRepository.findByEmail(email)
                                 .orElse(User.builder()
@@ -105,12 +112,17 @@ public class SecurityConfig {
                             claims.put("email", email);
                             claims.put("nickname", name);
                             claims.put("picture", picture);
-                            claims.put("sub", sub);
                             
                             String token = jwtUtil.generateToken(claims);
                             response.setCharacterEncoding("UTF-8");
                             response.sendRedirect("http://localhost:5173?token=" + token);
                         })
+                )
+                .exceptionHandling(e -> e
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Unauthorized");
+                    })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -120,7 +132,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
